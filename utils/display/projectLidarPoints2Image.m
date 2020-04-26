@@ -1,4 +1,4 @@
-function projectLidarPoints2Image(ax, I, pointcloud, pointcloud_intensity, K, R, T, renderMode, limits, Ilimits, pointSize)
+function projectLidarPoints2Image(ax, I, pointcloud, pointcloud_intensity, K, R, T, D, renderMode, projectionMode, limits, Ilimits, pointSize)
     % inputs:
     % ax, the axes of the canvas
     % I = image from image topic
@@ -7,11 +7,45 @@ function projectLidarPoints2Image(ax, I, pointcloud, pointcloud_intensity, K, R,
     % K = internal camera matrix of this sensor
     % R = rotation matrix for lidar reference frame to camera reference frame
     % T = translation matrix for lidar reference frame to camera reference frames
+    % D = Distortion for the camera []
 
     % renderMode = render mode of the projected points, it can be set with 'plain', 'range', 'height', 'intensity'
+    % projectionMode = projection mode of the projected points, it can be set with 'undistort', 'distort'
     % limits, limitation of the pointcloud
     % Ilimits, limitation of the pointcloud related to intensity
     % pointSize, the size of the rendered projected point
+
+    % parse the Distortion parameter
+    k1 = 0;
+    k2 = 0;
+    k3 = 0;
+    p1 = 0;
+    p2 = 0;
+    if length(D) == 2
+        k1 = D(1);
+        k2 = D(2);
+    elseif length(D) == 3
+        k1 = D(1);
+        k2 = D(2);
+        k3 = D(3);
+    elseif length(D) == 4
+        k1 = D(1);
+        k2 = D(2);
+        p1 = D(3);
+        p2 = D(4);
+    elseif length(D) == 5
+        k1 = D(1);
+        k2 = D(2);
+        k3 = D(3);
+        p1 = D(4);
+        p2 = D(5);
+    end
+
+    % parse the K
+    fx = K(1, 1);
+    fy = K(2, 2);
+    cx = K(1, 3);
+    cy = K(2, 3);
 
     %% set the colormap
     CC = hsv(256);
@@ -36,13 +70,34 @@ function projectLidarPoints2Image(ax, I, pointcloud, pointcloud_intensity, K, R,
         pointcloud_intensity = pointcloud_intensity(valid_index);
     end
 
-    image_points = K*Pc;
-    tempX = image_points(1,:)./ image_points(3,:);
-    tempY = image_points(2,:)./ image_points(3,:);
+    tempX = Pc(1,:)./ Pc(3,:);
+    tempY = Pc(2,:)./ Pc(3,:);
 
-    index = find(tempX(1,:) > 1 & tempX(1,:) < col &  tempY(1,:) > 1 & tempY(1,:) < row); 
-    X_final = tempX(index);
-    Y_final = tempY(index);
+    if isequal(projectionMode, 'undistort')
+        tempXX = tempX;
+        tempYY = tempY;
+    elseif isequal(projectionMode, 'distort')
+        r2 = tempX.^2 + tempY.^2;
+        tempXX = (1 + k1*r2 + k2*r2.^2 + k3*r2.^3).*tempX + 2 * p1 * tempX.*tempY + p2 * (r2 + 2*tempX.^2);
+        tempYY = (1 + k1*r2 + k2*r2.^2 + k3*r2.^3).*tempY + p1 * (r2 + 2*tempY.^2) + 2 * p2 * tempX.*tempY;
+    end
+
+    tempXX_uv = tempXX * fx + cx;
+    tempYY_uv = tempYY * fy + cy;
+
+    tempXX_uv_raw = tempX * fx + cx;
+    tempYY_uv_raw = tempY * fy + cy;
+
+    index = find(tempXX_uv_raw(1,:) > -100 & ...
+                tempXX_uv_raw(1,:) < col + 100 &  ...
+                tempYY_uv_raw(1,:) > -100 & ...
+                tempYY_uv_raw(1,:) < row + 100 & ...
+                tempXX_uv(1, :) < col & ...
+                tempYY_uv(1, :) < row & ...
+                tempXX_uv(1, :) > 1 & ...
+                tempYY_uv(1, :) > 1); 
+    X_final = tempXX_uv(index);
+    Y_final = tempYY_uv(index);
 
     pointcloud_final = (pointcloud(:, index))';
     if ~isempty(pointcloud_intensity)

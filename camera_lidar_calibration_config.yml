@@ -1,0 +1,23 @@
+# configuration file for camera lidar calibration
+'chessboardProperties': 7, 9, 0.1085 # square num along y-axis, square num along x-axis, side length of the square in meters
+'pointFileType': 'pcd' # type of the point cloud file
+'pointcloud_limit': -50, 50, -100, 0, -3, 3 # limitations for the pointcloud, (xmin, xmax, ymin, ymax, zmin, zmax)
+'planeFitParams': 0.02, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
+'planeFitParams_stage_1': 0.08, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
+'planeFitParams_stage_2': 0.02, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
+'distanceMat_T': 0.05 # max distance for the distance map, in meters
+'ifRemoveGround': 1 # remove the ground, 1 or 0
+
+'N_SCAN': 40 # scan line of the lidar
+'Horizon_SCAN': 1800 # width for the range image
+'groundScanInd': 12 # horizontal ring id from the top to bottom
+'sensorMountAngle': 0 # approximate pitch angle for the lidar sensor in degree
+'groundRemovalAngleT': 2 # ground removal angle threshold in degree
+'segmentTheta': 0.3488 # threshold angle for segmentation in radial
+'feasibleSegmentValidPointNum': 30
+'segmentValidPointNum': 5
+'segmentValidLineNum': 3
+'horizontal_res': 0.003488 # in radial
+'vertical_theta': 7.142,6.141,5.135,4.127,3.114,2.101,1.767,1.421,1.086,0.751,0.406,0.0709,-0.268,-0.606,-0.945,-1.283,-1.621,-1.959,-2.297,-2.636,-2.974,-3.311,-3.647,-3.985,-4.319,-4.660,-4.994,-5.326,-5.667,-5.999,-7.000,-7.997,-8.986,-9.971,-10.947,-11.916,-12.873,-13.825,-14.766,-15.696
+
+'ga_loss_threshold': 500 # ga fitnessLimit for reprojection error
