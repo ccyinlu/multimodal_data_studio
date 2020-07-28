@@ -55,7 +55,7 @@ function projectLidarPoints2Image(ax, I, pointcloud, pointcloud_intensity, K, R,
 
     %% crop the points according to the limits
     indexValid = pointcloud(1, :) > limits(1) & pointcloud(1, :) < limits(2) & pointcloud(2, :) > limits(3) & pointcloud(2, :) < limits(4) & pointcloud(3, :) > limits(5) & pointcloud(3, :) < limits(6);
-    pointcloud = pointcloud(:, indexValid);
+    pointcloud = pointcloud(1:3, indexValid);
     if ~isempty(pointcloud_intensity)
         pointcloud_intensity = pointcloud_intensity(indexValid);
     end
