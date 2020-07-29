@@ -1,7 +1,7 @@
 # configuration file for camera lidar calibration
 'chessboardProperties': 7, 9, 0.1085 # square num along y-axis, square num along x-axis, side length of the square in meters
 'pointFileType': 'pcd' # type of the point cloud file
-'pointcloud_limit': -50, 50, -100, 0, -3, 3 # limitations for the pointcloud, (xmin, xmax, ymin, ymax, zmin, zmax)
+'pointcloud_limit': -50, 50, -50, 50, -3, 3 # limitations for the pointcloud, (xmin, xmax, ymin, ymax, zmin, zmax)
 'planeFitParams': 0.02, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
 'planeFitParams_stage_1': 0.08, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
 'planeFitParams_stage_2': 0.02, 0, 1, 0, 70 # max distance in meters, reference normal(1x3), max angle in degree
