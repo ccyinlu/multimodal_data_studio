@@ -103,26 +103,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             "field vertical_theta not found in the params struct");
     }
 
-    // get the parameter : lidar_type
-    // fPtr = mxGetField(prhs[0], 0, "lidar_type");
-    // if ((fPtr != NULL)){
-    //     double *realPtr = mxGetPr(fPtr);
-    //     lidar_type = mxArrayToString(fPtr);
-    //     if(!(strcmp(lidar_type, "hesai_p40p") == 0) && \
-    //        !(strcmp(lidar_type, "velodyne_hdl_64e") == 0) && \
-    //         !(strcmp(lidar_type, "prescan_p40p") == 0)){
-    //         mexPrintf("%s%s\n", "lidar_type: ", lidar_type);
-    //         mexErrMsgIdAndTxt( "projectPointCloud:invalidField",
-    //                 "lidar_type not supported");
-    //     }
-    //     #ifdef DEBUG
-    //         mexPrintf("%s%s\n", "lidar_type: ", lidar_type);
-    //     #endif
-    // }else{
-    //     mexErrMsgIdAndTxt( "projectPointCloud:invalidField",
-    //         "field lidar_type not found in the params struct");
-    // }
-
     #ifdef DEBUG
         mexPrintf("%s%d\t%s%d\t%s%d\n", "number of scans: ", N_SCAN, "number of cols: ", Horizon_SCAN, "number of points: ", numOfPoints);
     #endif
@@ -203,7 +183,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         current_x = ptrRawPointCloud[(numOfPoints * 0) + i];
         current_y = ptrRawPointCloud[(numOfPoints * 1) + i];
         current_z = ptrRawPointCloud[(numOfPoints * 2) + i];
-        current_i = ptrRawPointCloud[(numOfPoints * 3) + i];
+
+        if(numOfCols < 4){
+          current_i = 0;
+        }else{
+          current_i = ptrRawPointCloud[(numOfPoints * 3) + i];
+        }
+
         v_angle = atan2(current_z, sqrt(current_x*current_x + current_y*current_y));
 
         v_angle_raw[i] = v_angle;
@@ -259,7 +245,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         // }
 
         #ifdef DEBUG
-            // mexPrintf("%s%f\t%s%f\t%s%f\t%s%f\t%s%d\t%s%d\n", "x: ", current_x, "y: ", current_y, "z: ", current_z, "i: ", current_i, "h: ", h_index, "v: ", v_index);
+            mexPrintf("%s%f\t%s%f\t%s%f\t%s%f\t%s%d\t%s%d\n", "x: ", current_x, "y: ", current_y, "z: ", current_z, "i: ", current_i, "h: ", h_index, "v: ", v_index);
         #endif
 
         // update the current h_index and v_index data

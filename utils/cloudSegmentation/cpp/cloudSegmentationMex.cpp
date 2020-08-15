@@ -12,7 +12,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     // the first matrix represent the raw pointCloud: Nx4, | x | y | z | intensity |
     /* check proper input and output */
 
-    mexPrintf("=========================================================================\n");
+    // mexPrintf("=========================================================================\n");
     if(nrhs < 3)
         mexErrMsgIdAndTxt( "cloudSegmentation:invalidNumInputs",
                 "at least three input arguments required");

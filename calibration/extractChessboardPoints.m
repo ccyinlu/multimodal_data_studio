@@ -18,6 +18,23 @@ function [isFound, chessboardPoints, normal] = extractChessboardPoints(pcBase, .
     pointCompareParams.sensorMountAngle = params.sensorMountAngle;
     pointCompareParams.groundRemovalAngleT = params.groundRemovalAngleT;
 
+    pointCompareParams.groundRemoveMethod = params.groundRemoveMethod;
+    pointCompareParams.linefit_seg_r_min = params.linefit_seg_r_min;
+    pointCompareParams.linefit_seg_r_max = params.linefit_seg_r_max;
+    pointCompareParams.linefit_seg_n_bins = params.linefit_seg_n_bins;
+    pointCompareParams.linefit_seg_n_segments = params.linefit_seg_n_segments;
+    pointCompareParams.linefit_seg_max_dist_to_line = params.linefit_seg_max_dist_to_line;
+    pointCompareParams.linefit_seg_max_slope = params.linefit_seg_max_slope;
+    pointCompareParams.linefit_seg_max_fit_error = params.linefit_seg_max_fit_error;
+    pointCompareParams.linefit_seg_long_threshold = params.linefit_seg_long_threshold;
+    pointCompareParams.linefit_seg_max_long_height = params.linefit_seg_max_long_height;
+    pointCompareParams.linefit_seg_max_start_height = params.linefit_seg_max_start_height;
+    pointCompareParams.linefit_seg_sensor_height = params.linefit_seg_sensor_height;
+    pointCompareParams.linefit_seg_line_search_angle = params.linefit_seg_line_search_angle;
+    pointCompareParams.linefit_seg_n_threads = params.linefit_seg_n_threads;
+
+    pointCompareParams.differPointRatio = params.differPointRatio;
+
     cloudSegmentationParams = struct();
     cloudSegmentationParams.vertical_theta = params.vertical_theta;
     cloudSegmentationParams.N_SCAN = params.N_SCAN;
@@ -34,7 +51,7 @@ function [isFound, chessboardPoints, normal] = extractChessboardPoints(pcBase, .
     distanceMatSegmentationParams.horizontal_res = params.horizontal_res;
     distanceMatSegmentationParams.vertical_theta = params.vertical_theta;
 
-    [pcObjectPointOfUnmatched, ~] = pointCompare(pcBase, pcObject, pointCompareParams, false);
+    [pcObjectPointOfUnmatched, ~] = pointCompare(pcBase, pcObject, pointCompareParams);
 
     isFound = 0;
     chessboardPoints = [];
@@ -207,10 +224,10 @@ function [isFound, chessboardPoints, normal] = extractChessboardPoints(pcBase, .
         chessboard_points_estimated_z = distanceMatFull_z(distanceMat_chessboard_segmented_refined == 1);
         chessboard_points_estimated_i = distanceMatFull_i(distanceMat_chessboard_segmented_refined == 1);
         chessboard_points_estimated_refined = [chessboard_points_estimated_x chessboard_points_estimated_y chessboard_points_estimated_z chessboard_points_estimated_i];
-
     end
 
     isFound = 1;
     chessboardPoints = chessboard_points_estimated_refined;
     normal = plane_model.Normal;
+    fprintf('Checkerboard points num: %d\n', size(chessboardPoints, 1));
 end

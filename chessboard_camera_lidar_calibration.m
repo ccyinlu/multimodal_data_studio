@@ -19,10 +19,12 @@ classdef chessboard_camera_lidar_calibration < handle
         guiCalibrationResultsView
 
         current_dir
+        current_data_root_dir
         current_images_dir
         current_points_dir
         current_intrinsic_dir
         current_extrinsic_dir
+        current_config_file
 
         chessboardLidarPointsExtractionAlgo
         ExtrinsicEstimationAlgo
@@ -64,6 +66,8 @@ classdef chessboard_camera_lidar_calibration < handle
 
         extractChessboardPointsParams
         optimizationParams
+
+        intrinsic_extrinsic_refine_search_space
     end
 
     methods
@@ -76,11 +80,15 @@ classdef chessboard_camera_lidar_calibration < handle
                 this.current_dir = fileparts(which('chessboard_camera_lidar_calibration.m'));
             else
                 this.current_dir = varargin{1};
+                this.current_data_root_dir = varargin{2};
+                this.current_config_file = varargin{3};
             end
             addpath(fullfile(this.current_dir, './utils/interface'));
             addpath(fullfile(this.current_dir, './utils/display'));
             addpath(fullfile(this.current_dir, './utils/cloudSegmentation/func'));
             addpath(fullfile(this.current_dir, './utils/cloudSegmentation/mex'));
+            addpath(fullfile(this.current_dir, './utils/linefit_ground_segmentation/func'));
+            addpath(fullfile(this.current_dir, './utils/linefit_ground_segmentation/mex'));
             addpath(fullfile(this.current_dir, './utils/optimization/func'));
             addpath(fullfile(this.current_dir, './utils/optimization/mex'));
             addpath(fullfile(this.current_dir, './figure'));
@@ -217,10 +225,10 @@ classdef chessboard_camera_lidar_calibration < handle
         end % init
 
         function initParams(this)
-            this.current_images_dir = this.current_dir;
-            this.current_points_dir = this.current_dir;
-            this.current_intrinsic_dir = this.current_dir;
-            this.current_extrinsic_dir = this.current_dir;
+            this.current_images_dir = this.current_data_root_dir;
+            this.current_points_dir = this.current_data_root_dir;
+            this.current_intrinsic_dir = this.current_data_root_dir;
+            this.current_extrinsic_dir = this.current_data_root_dir;
             
             this.ExtrinsicEstimationAlgo = 'Co-Mask-GA-LM';
             this.chessboardLidarPointsExtractionAlgo = 'diffPlane';
@@ -251,6 +259,7 @@ classdef chessboard_camera_lidar_calibration < handle
             this.extractChessboardPointsParams.planeFitParams_stage_2 = {0.02 [0 1 0] 70};
             this.extractChessboardPointsParams.distanceMat_T = 0.05;
             this.extractChessboardPointsParams.ifRemoveGround = true;
+            this.extractChessboardPointsParams.groundRemoveMethod = 'linefit';
             this.extractChessboardPointsParams.vertical_theta = [7.14299997649533 ...
                                                                 6.14199999369268 ...
                                                                 5.13599998302528 ...
@@ -303,17 +312,51 @@ classdef chessboard_camera_lidar_calibration < handle
             this.extractChessboardPointsParams.segmentValidLineNum = 3;
             this.extractChessboardPointsParams.horizontal_res = 0.2*pi/180;
 
+            this.extractChessboardPointsParams.horizontal_res = 0.2*pi/180;
+
+            this.extractChessboardPointsParams.linefit_seg_r_min = 0.2;
+            this.extractChessboardPointsParams.linefit_seg_r_max = 50;
+            this.extractChessboardPointsParams.linefit_seg_n_bins = 360;
+            this.extractChessboardPointsParams.linefit_seg_n_segments = 360;
+            this.extractChessboardPointsParams.linefit_seg_max_dist_to_line = 0.05;
+            this.extractChessboardPointsParams.linefit_seg_max_slope = 0.3;
+            this.extractChessboardPointsParams.linefit_seg_max_fit_error = 0.02;
+            this.extractChessboardPointsParams.linefit_seg_long_threshold = 1.0;
+            this.extractChessboardPointsParams.linefit_seg_max_long_height = 0.1;
+            this.extractChessboardPointsParams.linefit_seg_max_start_height = 0.2;
+            this.extractChessboardPointsParams.linefit_seg_sensor_height = 0.5;
+            this.extractChessboardPointsParams.linefit_seg_line_search_angle = 0.1;
+            this.extractChessboardPointsParams.linefit_seg_n_threads = 4;
+
+            this.extractChessboardPointsParams.differPointRatio = 2;
+
             this.optimizationParams = struct();
             this.optimizationParams.ga_loss_threshold = 500;
+
+            this.intrinsic_extrinsic_refine_search_space = [
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+              0 ...
+            ];
 
             init_params_from_config_file(this);
 
         end % initParams
 
         function init_params_from_config_file(this)
-            params_config_file = './camera_lidar_calibration_config.yml';
+            params_config_file = this.current_config_file;
             if ~exist(params_config_file,'file')
-                return;
+              errordlg('params_config_file not found', 'File not found');
+              return;
             end
 
             params = YAML.read(params_config_file);
@@ -328,6 +371,7 @@ classdef chessboard_camera_lidar_calibration < handle
             this.extractChessboardPointsParams.planeFitParams_stage_2 = {planeFitParams_stage_2_(1) planeFitParams_stage_2_(2:4) planeFitParams_stage_2_(5)}; 
             this.extractChessboardPointsParams.distanceMat_T = params.distanceMat_T;
             this.extractChessboardPointsParams.ifRemoveGround = params.ifRemoveGround;
+            this.extractChessboardPointsParams.groundRemoveMethod = params.groundRemoveMethod;
             this.extractChessboardPointsParams.vertical_theta = str2num(params.vertical_theta);
 
             this.extractChessboardPointsParams.N_SCAN = params.N_SCAN;
@@ -339,9 +383,27 @@ classdef chessboard_camera_lidar_calibration < handle
             this.extractChessboardPointsParams.feasibleSegmentValidPointNum = params.feasibleSegmentValidPointNum;
             this.extractChessboardPointsParams.segmentValidPointNum = params.segmentValidPointNum;
             this.extractChessboardPointsParams.segmentValidLineNum = params.segmentValidLineNum;
-            this.extractChessboardPointsParams.horizontal_res = params.horizontal_res;
+            this.extractChessboardPointsParams.horizontal_res = 2*pi/params.Horizon_SCAN;
+
+            % params for the linefit ground removal
+            this.extractChessboardPointsParams.linefit_seg_r_min = params.linefit_seg_r_min;
+            this.extractChessboardPointsParams.linefit_seg_r_max = params.linefit_seg_r_max;
+            this.extractChessboardPointsParams.linefit_seg_n_bins = params.linefit_seg_n_bins;
+            this.extractChessboardPointsParams.linefit_seg_n_segments = params.linefit_seg_n_segments;
+            this.extractChessboardPointsParams.linefit_seg_max_dist_to_line = params.linefit_seg_max_dist_to_line;
+            this.extractChessboardPointsParams.linefit_seg_max_slope = params.linefit_seg_max_slope;
+            this.extractChessboardPointsParams.linefit_seg_max_fit_error = params.linefit_seg_max_fit_error;
+            this.extractChessboardPointsParams.linefit_seg_long_threshold = params.linefit_seg_long_threshold;
+            this.extractChessboardPointsParams.linefit_seg_max_long_height = params.linefit_seg_max_long_height;
+            this.extractChessboardPointsParams.linefit_seg_max_start_height = params.linefit_seg_max_start_height;
+            this.extractChessboardPointsParams.linefit_seg_sensor_height = params.linefit_seg_sensor_height;
+            this.extractChessboardPointsParams.linefit_seg_line_search_angle = params.linefit_seg_line_search_angle;
+            this.extractChessboardPointsParams.linefit_seg_n_threads = params.linefit_seg_n_threads;
+
+            this.extractChessboardPointsParams.differPointRatio = params.differPointRatio;
 
             this.optimizationParams.ga_loss_threshold = params.ga_loss_threshold;
+            this.intrinsic_extrinsic_refine_search_space = str2num(params.intrinsic_extrinsic_refine_search_space);
         end
 
         function initData(this)

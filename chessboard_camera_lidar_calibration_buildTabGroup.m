@@ -827,13 +827,15 @@ function createExtrinsicOption(tab, app)
     
     dropDownPointFileType.ValueChangedFcn = @onPointFileTypeChangedCallback;
 
-    dropDownExtrinsicEstimationAlgo = DropDown({'A' 'Co-Mask-LM-G2O'; 'B' 'Co-Mask-GA-LM'});
+    dropDownExtrinsicEstimationAlgo = DropDown({'A' 'Co-Mask-LM-G2O'; 'B' 'Co-Mask-GA-LM'; 'C' 'Co-Mask-GA-I-Refine'});
     dropDownExtrinsicEstimationAlgo.Description = 'ExtrinsicEstimationAlgo';
     dropDownExtrinsicEstimationAlgo.Editable = true;
     if isequal(app.ExtrinsicEstimationAlgo, 'Co-Mask-LM-G2O')
         dropDownExtrinsicEstimationAlgo.Value = 'A';
     elseif isequal(app.ExtrinsicEstimationAlgo, 'Co-Mask-GA-LM')
         dropDownExtrinsicEstimationAlgo.Value = 'B';
+    elseif isequal(app.ExtrinsicEstimationAlgo, 'Co-Mask-GA-I-Refine')
+        dropDownExtrinsicEstimationAlgo.Value = 'C';
     end
     dropDownExtrinsicEstimationAlgo.ValueChangedFcn = @onExtrinsicEstimationAlgoChangedCallback;
 
@@ -930,6 +932,8 @@ function createExtrinsicOption(tab, app)
             app.ExtrinsicEstimationAlgo = 'Co-Mask-LM-G2O';
         elseif isequal(value, 'B')
             app.ExtrinsicEstimationAlgo = 'Co-Mask-GA-LM';
+        elseif isequal(value, 'C')
+            app.ExtrinsicEstimationAlgo = 'Co-Mask-GA-I-Refine';
         end
     end % onExtrinsicEstimationAlgoChangedCallback
 
@@ -1300,6 +1304,45 @@ function createCalibration(tab, app)
                                                                     chessboardPlaneMaskDT_, ...
                                                                     app.cameraIntrinsicCalibrationResult.cameraParams, ...
                                                                     estimateExtrinsicParams);
+                estimateExtrinsicOpti_in_process = {};
+            elseif isequal(app.ExtrinsicEstimationAlgo, 'Co-Mask-GA-I-Refine')
+                estimateExtrinsicParams = struct();
+                % get the init extrinsic parameters, [yaw pitch roll x y z]
+                initExtrinsicParams = [
+                  app.current_camera2lidar_6dof(1) ...
+                  app.current_camera2lidar_6dof(2) ...
+                  app.current_camera2lidar_6dof(3) ...
+                  app.current_camera2lidar_6dof(4) ...
+                  app.current_camera2lidar_6dof(5) ...
+                  app.current_camera2lidar_6dof(6) ...
+                ];
+                % get the init intrinsic parameters, [fx fy cx cy k1 k2]
+                K = app.cameraIntrinsicCalibrationResult.cameraParams.IntrinsicMatrix';
+                initIntrinsicParams = [
+                  K(1, 1) ...
+                  K(2, 2) ...
+                  K(1, 3) ...
+                  K(2, 3) ...
+                  app.cameraIntrinsicCalibrationResult.cameraParams.RadialDistortion(1) ...
+                  app.cameraIntrinsicCalibrationResult.cameraParams.RadialDistortion(2) ...
+                ];
+                estimateExtrinsicParams.initIntrinsicExtrinsicParams = [initExtrinsicParams initIntrinsicParams];
+                estimateExtrinsicParams.searchSpace = app.intrinsic_extrinsic_refine_search_space;
+
+                [Params, estimationErrors] = estimateIntrinsicExtrinsicParametersCoMask_GA(chessboardLidarPoints_, ...
+                                                                                    chessboardPlaneMaskDT_, ...
+                                                                                    estimateExtrinsicParams);
+
+                % update the intrinsic parameters
+                estimated_IntrinsicMatrix = [Params.fx 0 Params.cx; 0 Params.fy Params.cy; 0 0 1]';
+                estimated_RadialDistortion = [Params.k1 Params.k2];
+                estiamted_TangentialDistortion = [0 0];
+                cameraParams = cameraParameters('IntrinsicMatrix', estimated_IntrinsicMatrix, ...
+                                'RadialDistortion', estimated_RadialDistortion, ...
+                                'TangentialDistortion', estiamted_TangentialDistortion, ...
+                                'ImageSize', [app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(2) app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(1)]);
+                app.cameraIntrinsicCalibrationResult.cameraParams = cameraParams;
+
                 estimateExtrinsicOpti_in_process = {};
             end
             
