@@ -1,15 +1,15 @@
-% generate the vetical angle of the pointCloud
+% estimate the vertical configuration from the raw points
 
 clc;
 close all;
 
 addpath('../thirdParty/yaml');
 addpath('../utils/interface');
-addpath('../utils/cloudSegmentation/func');
-addpath('../utils/cloudSegmentation/mex');
+addpath('../utils/linefit_ground_segmentation/func');
+addpath('../utils/linefit_ground_segmentation/mex');
 
 if ~exist('data_root')
-    data_root = '/media/bingo/SSD/camera_lidar_calibration/triple/20200813';
+  data_root = '/media/bingo/SSD/camera_lidar_calibration/sanheyi/20200817/extri';
 end
 
 if ~exist('pointcloud_name')
@@ -28,11 +28,6 @@ pointcloud_limit = str2num(params.pointcloud_limit);
 vertical_theta = str2num(params.vertical_theta) * pi / 180; % must be in radial
 N_SCAN = params.N_SCAN;
 Horizon_SCAN = params.Horizon_SCAN;
-
-if ~exist('pointType')
-    % pointType = 'hesai_p40p';
-    pointType = 'prescan_p40p';
-end
 
 data_pointcloud_dir = [data_root '/' pointcloud_name];
 

@@ -18,7 +18,7 @@ function [CameraMat, DistCoeff, ImageSize] = loadCameraYaml(filePath)
     %%   cols: 5
     %%   dt: d
     %%   data: [ 1x5 ]
-    %% ImageSize: [ W, H ]
+    %% ImageSize: [ H, W ] [Rows Cols]
 
     % we use YAMLMATLAB tools to parse the YAML file
     % @installation: Install it by  addpath(genpath('path/to/codes'));

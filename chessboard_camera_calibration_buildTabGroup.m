@@ -105,7 +105,7 @@ function createFile(tab, app)
         cameraParams = cameraParameters('IntrinsicMatrix', CameraMat', ...
                                         'RadialDistortion', RadialDistortion, ...
                                         'TangentialDistortion', TangentialDistortion, ...
-                                        'ImageSize', [ImageSize(2) ImageSize(1)]);
+                                        'ImageSize', [ImageSize(1) ImageSize(2)]);
         app.cameraIntrinsicCalibrationResult.cameraParams = cameraParams;
 
     end  % onLoadIntrinsic    
@@ -763,8 +763,9 @@ function createCalibration(tab, app)
                                     app.cameraIntrinsicCalibrationResult.cameraParams.TangentialDistortion(1) ...
                                     app.cameraIntrinsicCalibrationResult.cameraParams.TangentialDistortion(2)];
                 end
-                imageSize = [   app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(2) ...
-                                app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(1)];
+                % cameraParams.ImageSize: [rows cols]
+                imageSize = [   app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(1) ...
+                                app.cameraIntrinsicCalibrationResult.cameraParams.ImageSize(2)];
             else
                 warningNoneIntrinsicCalibrationDialog();
                 return;

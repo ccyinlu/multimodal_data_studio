@@ -1,7 +1,4 @@
-function [mount_z, mount_pitch, mount_roll] = ransac_ground_estimation(groundSegmentParams, input_point_cloud)
-  % 
-  groundSegmentParams.leveling = false;
-  [ground_point_cloud, ~] = linefit_ground_segment(groundSegmentParams, input_point_cloud);
+function [mount_z, mount_pitch, mount_roll] = ransac_ground_estimation(ground_point_cloud)
   % estimate the plane equation according to RANSAC method
 
   ground_point_cloud_pt = pointCloud(ground_point_cloud);

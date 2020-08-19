@@ -23,7 +23,7 @@ function [CameraExtrinsicMat, CameraMat, DistCoeff, ImageSize, ReprojectionError
     %%   cols: 5
     %%   dt: d
     %%   data: [ 1x5 ]
-    %% ImageSize: [ W, H ]
+    %% ImageSize: [ H, W ] [rows cols]
     %% ReprojectionError: double
 
     % we use YAMLMATLAB tools to parse the YAML file
