@@ -106,7 +106,7 @@ function [pcObjectPointOfUnmatched, pcObjectLimited] = pointCompare(pcBase, pcOb
 
         % [meter, degree, degree]
         % 
-        groundSegmentParams.leveling = false;
+        linefitGroundSegmentParams.leveling = false;
         [ground_point_cloud, ~] = linefit_ground_segment(linefitGroundSegmentParams, double(pcBasePoint));
         [mount_z, mount_pitch, mount_roll] = ransac_ground_estimation(ground_point_cloud);
         linefitGroundSegmentParams.levelingPresetZ = mount_z;

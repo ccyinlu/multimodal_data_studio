@@ -47,7 +47,7 @@ ground_removal_params.linefit_seg_sensor_height = params.linefit_seg_sensor_heig
 ground_removal_params.linefit_seg_line_search_angle = params.linefit_seg_line_search_angle;
 ground_removal_params.linefit_seg_n_threads = params.linefit_seg_n_threads;
 
-ground_removal_params.ground_removal_method = params.ground_removal_method;
+ground_removal_params.ground_removal_method = params.groundRemoveMethod;
 
 data_pointcloud_dir = [data_root '/' pointcloud_name];
 pointCloudBase_file_name = sprintf('%s/%06d.pcd', data_pointcloud_dir, start_index);
@@ -76,7 +76,7 @@ linefitGroundSegmentParams.levelingPresetPitch = 0;
 linefitGroundSegmentParams.levelingPresetRoll = 0;
 
 % [meter, degree, degree]
-groundSegmentParams.leveling = false;
+linefitGroundSegmentParams.leveling = false;
 [ground_point_cloud, points_without_ground_stage1] = linefit_ground_segment(linefitGroundSegmentParams, double(points));
 [mount_z, mount_pitch, mount_roll] = ransac_ground_estimation(ground_point_cloud);
 linefitGroundSegmentParams.levelingPresetZ = mount_z;
@@ -103,6 +103,7 @@ set(gca, 'CameraTarget', cameraTarget);
 set(gca, 'CameraUpVector', cameraUpVector);
 set(gca, 'CameraViewAngle', cameraViewAngle);
 
+linefitGroundSegmentParams.leveling = true;
 [ground_point_cloud_estimated, points_without_ground_stage2] = linefit_ground_segment(linefitGroundSegmentParams, double(points));
 [mount_z, mount_pitch, mount_roll] = ransac_ground_estimation(ground_point_cloud_estimated);
 
@@ -123,6 +124,75 @@ set(gca, 'CameraPosition', cameraPosition);
 set(gca, 'CameraTarget', cameraTarget);
 set(gca, 'CameraUpVector', cameraUpVector);
 set(gca, 'CameraViewAngle', cameraViewAngle);
+
+fprintf('estimated mount_z: %f, mount_pitch: %f, mount_roll: %f\n', mount_z, mount_pitch, mount_roll);
+
+lidar2ground_extrinsic_filename = sprintf('%s/lidar2ground_extrinsic.yml', data_root);
+
+exportAutowareStyleYmlExtrinsic(lidar2ground_extrinsic_filename, mount_z, mount_pitch, mount_roll);
+
+function exportAutowareStyleYmlExtrinsic(filename, mount_z, mount_pitch, mount_roll)
+  % export the parameters to the yaml file
+  fid = fopen(filename, 'w');
+  LidarToGroundExtrinsicMat = eye(4);
+  LidarToGroundExtrinsic_rot = eul2rotm([0 mount_pitch/180*pi mount_roll/180*pi]);
+  LidarToGroundExtrinsicMat(1:3, 1:3) = LidarToGroundExtrinsic_rot;
+  LidarToGroundExtrinsicMat(3, 4) = mount_z;
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('LidarToGroundExtrinsicMat:\r\n');
+  fprintf(fid, str);
+  str = sprintf('  rows: %d\r\n', size(LidarToGroundExtrinsicMat, 1));
+  fprintf(fid, str);
+  str = sprintf('  cols: %d\r\n', size(LidarToGroundExtrinsicMat, 2));
+  fprintf(fid, str);
+  str = sprintf('  dt: d\r\n');
+  fprintf(fid, str);
+  str = sprintf('  data: ');
+  fprintf(fid, str);
+  str = sprintf('[ ');
+  for i = 1 : size(LidarToGroundExtrinsicMat, 1)
+      for j = 1 : size(LidarToGroundExtrinsicMat, 2)
+          str = sprintf('%s%.6f', str, LidarToGroundExtrinsicMat(i, j));
+          if ~(j == size(LidarToGroundExtrinsicMat, 2) && i == size(LidarToGroundExtrinsicMat, 1))
+              str = sprintf('%s, ', str);
+          end
+      end
+      if i ~= size(LidarToGroundExtrinsicMat, 1)
+          str = sprintf('%s\r\n          ', str);
+      else
+          str = sprintf('%s]\r\n', str);
+      end
+  end
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_yaw: %.6f\r\n', 0);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_pitch: %.6f\r\n', mount_pitch);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_roll: %.6f\r\n', mount_roll);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_x: %.6f\r\n', 0);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_y: %.6f\r\n', 0);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  str = sprintf('mount_z: %.6f\r\n', mount_z);
+  fprintf(fid, str);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  fclose(fid);
+
+  warningCalibrationFileDoneDialog();
+
+  function warningCalibrationFileDoneDialog
+    str = sprintf('Export Calibration File Done! \r\n');
+    uiwait(warndlg(str, 'Export Calibration File Done'));
+  end % warningCalibrationFileDoneDialog
+end
 
 
 
