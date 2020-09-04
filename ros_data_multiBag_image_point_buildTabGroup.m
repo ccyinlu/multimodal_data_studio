@@ -1118,7 +1118,7 @@ function saveRosbagTopics(src, data, app)
                                 elseif isequal(messages{1}.MessageType, 'sensor_msgs/PointCloud2')
                                     point_xyz = readXYZ(messages{1});
                                     point_intensity = readIntensity(messages{1});
-                                    ptCloud = pointCloud(point_xyz, 'Intensity', point_intensity);
+                                    ptCloud = pointCloud(point_xyz, 'Intensity', single(point_intensity));
                                     PointName = sprintf('%s/%06d.pcd', topic_subfolder{j}, numImageWrite);
                                     object_topic{j, 1} = ptCloud;
                                     object_topic{j, 2} = PointName;
