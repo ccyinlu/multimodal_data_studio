@@ -156,7 +156,7 @@ Below we will explain the general function of these operation buttons:
 
 **The relevant points of data preparation have been mentioned above. Here is a sample data provided as an example to illustrate the composition form of the data that needs to be prepared.**  
 
-**You can get the sample data with 25 observation from [sample data](https://drive.google.com/open?id=1zyUtEY5XvnpCCHNaBnGIHAplFIGuCOkX)**
+**You can get the sample data with 25 observation from [sample_data](https://drive.google.com/file/d/1AlhlXkwabZbQAurNrabzHxW0Ocy0AuVf/view?usp=sharing), [sample_data_config](https://drive.google.com/file/d/1LHYJi2ZYDEQjNk_DMrnr5lyv881c_zY2/view?usp=sharing), you should download the data and config files and extract them, and then put them under the same directory.**
 
 | Directory and file name | function description  |
 |:------------:|:-----:|
