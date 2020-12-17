@@ -340,6 +340,7 @@ classdef ros_data_multiBag_image_point < handle
 
             for i = 1 : this.Rosbag.numBags
                 topicsCell = getTopicsByType(this.Rosbag.bags{i}, 'sensor_msgs/Image');
+                topicsCell = [topicsCell getTopicsByType(this.Rosbag.bags{i}, 'sensor_msgs/CompressedImage')];
                 if ~isempty(topicsCell)
                     for j = 1 : length(topicsCell)
                         if ~sum(ismember(this.RosbagAvailableImageTopics.topics, topicsCell{j}))

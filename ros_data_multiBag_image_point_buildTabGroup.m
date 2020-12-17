@@ -1000,7 +1000,7 @@ function saveRosbagTopics(src, data, app)
                                                                                     timeOffsetThresholds);
                             if founds
                                 % judge the type of the message
-                                if isequal(messages{1}.MessageType, 'sensor_msgs/Image')
+                                if isequal(messages{1}.MessageType, 'sensor_msgs/Image')  || isequal(messages{1}.MessageType, 'sensor_msgs/CompressedImage')
                                     image = readImage(messages{1});
                                     imageName = sprintf('%s/%06d.png', topic_subfolder{j}, numImageWrite);
                                     imwrite(image, imageName);
@@ -1054,7 +1054,7 @@ function saveRosbagTopics(src, data, app)
                                 break;
                             end
     
-                            if isequal(message_.MessageType, 'sensor_msgs/Image')
+                            if isequal(message_.MessageType, 'sensor_msgs/Image')  || isequal(message_.MessageType, 'sensor_msgs/CompressedImage')
                                 SelectedBag_ = select(app.Rosbag.bags{bagid}, 'Topic', topicsSelected{j});
                                 TimeStampImage_ = SelectedBag_.MessageList.Time;
                                 if isequal(app.RosbagCurrentTimeBaseType, 'Image')
@@ -1109,7 +1109,7 @@ function saveRosbagTopics(src, data, app)
     
                             if founds
                                 % judge the type of the message
-                                if isequal(messages{1}.MessageType, 'sensor_msgs/Image')
+                                if isequal(messages{1}.MessageType, 'sensor_msgs/Image') || isequal(messages{1}.MessageType, 'sensor_msgs/CompressedImage')
                                     image = readImage(messages{1});
                                     imageName = sprintf('%s/%06d.png', topic_subfolder{j}, numImageWrite);
                                     object_topic{j, 1} = image;
@@ -1489,7 +1489,7 @@ function SingleShotImage(src, data, app)
                                                                     timeOffsetThresholds + 0.1 );
 
             message_ = messages{1};
-            if isequal(message_.MessageType, 'sensor_msgs/Image')
+            if isequal(message_.MessageType, 'sensor_msgs/Image') || isequal(message_.MessageType, 'sensor_msgs/CompressedImage')
                 SelectedBag_ = select(app.Rosbag.bags{bagid}, 'Topic', SSTopicsSelected{j});
                 TimeStampImage_ = SelectedBag_.MessageList.Time;
                 if isequal(app.RosbagCurrentTimeBaseType, 'Image')
@@ -1545,7 +1545,7 @@ function SingleShotImage(src, data, app)
             if founds
                 % judge the type of the message
                 global SS_topic_subfolder;
-                if isequal(message_.MessageType, 'sensor_msgs/Image')
+                if isequal(message_.MessageType, 'sensor_msgs/Image') || isequal(message_.MessageType, 'sensor_msgs/CompressedImage')
                     image = readImage(message_);
                     imageName = sprintf('%s/%06d.png', SS_topic_subfolder{j}, app.SingleShotIndex);
                     imwrite(image, imageName);
